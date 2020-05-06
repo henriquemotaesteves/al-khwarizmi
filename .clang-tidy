@@ -1,0 +1,14 @@
+Checks: >-
+    *,
+    -altera-id-dependent-backward-branch,
+    -altera-struct-pack-align,
+    -altera-unroll-loops,
+    -bugprone-easily-swappable-parameters,
+    -llvm-header-guard,
+    -llvmlibc-restrict-system-libc-headers
+
+CheckOptions:
+  readability-function-cognitive-complexity.IgnoreMacros: true
+
+WarningsAsErrors: >-
+    *

@@ -1,0 +1,12 @@
+services:
+  workstation:
+    build: .
+    image: al-khwarizmi-workstation:latest
+
+    container_name: al-khwarizmi-workstation
+
+    stdin_open: true
+    tty:        true
+
+    volumes:
+      - .:/al-khwarizmi
