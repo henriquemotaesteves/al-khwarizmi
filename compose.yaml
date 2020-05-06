@@ -1,0 +1,9 @@
+services:
+  workstation:
+    build: .
+
+    stdin_open: true
+    tty:        true
+
+    volumes:
+      - .:/al-khwarizmi
