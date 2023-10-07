@@ -129,7 +129,7 @@ SUITE(linear_search_suite) {
 
 GREATEST_MAIN_DEFS();
 
-int main(int argc, char **argv) {
+int main(const int argc, char **argv) {
     GREATEST_MAIN_BEGIN();
 
     RUN_SUITE(linear_search_suite);

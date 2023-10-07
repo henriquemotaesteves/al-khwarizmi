@@ -19,14 +19,23 @@ TEST_PERF_ITEMS_COUNT != seq 100
 TEST_PERF_RUNNERS     := $(foreach NUMBER_OF_ITEMS,$(TEST_PERF_ITEMS_COUNT),$(TEST_PERF_OBJECTS:.o=.x/$(NUMBER_OF_ITEMS)))
 TEST_PERF_PLOTS       := $(wildcard resource/*.gnuplot)
 
-.PHONY: $(TEST_UNIT_RUNNERS) $(TEST_PERF_RUNNERS) $(TEST_PERF_PLOTS)
+TEST_LEAK_BUILD_DIR   := build/test/leak
+TEST_LEAK_SRC_DIR     := src/test/leak
+TEST_LEAK_SOURCES     := $(wildcard $(TEST_LEAK_SRC_DIR)/*.c)
+TEST_LEAK_OBJECTS     := $(TEST_LEAK_SOURCES:$(TEST_LEAK_SRC_DIR)/%.c=$(TEST_LEAK_BUILD_DIR)/%.o)
+TEST_LEAK_ITEMS_COUNT != seq 100
+TEST_LEAK_RUNNERS     := $(foreach NUMBER_OF_ITEMS,$(TEST_LEAK_ITEMS_COUNT),$(TEST_LEAK_OBJECTS:.o=.x/$(NUMBER_OF_ITEMS)))
 
-all: clean build test-unit test-perf
+.PHONY: $(TEST_LEAK_RUNNERS) $(TEST_UNIT_RUNNERS) $(TEST_PERF_RUNNERS) $(TEST_PERF_PLOTS)
+
+all: clean build test-unit test-leak test-perf
 
 clean:
 	rm -rf build
 
-build: $(MAIN_OBJECTS) $(TEST_UNIT_OBJECTS) $(TEST_PERF_OBJECTS)
+build: $(MAIN_OBJECTS) $(TEST_LEAK_OBJECTS) $(TEST_UNIT_OBJECTS) $(TEST_PERF_OBJECTS)
+
+test-leak: clean build $(TEST_LEAK_RUNNERS)
 
 test-unit: clean build $(TEST_UNIT_RUNNERS)
 
@@ -35,11 +44,17 @@ test-perf: clean build $(TEST_PERF_RUNNERS) $(TEST_PERF_PLOTS)
 $(MAIN_BUILD_DIR)/%.o: $(MAIN_SRC_DIR)/%.c
 	mkdir -p $(dir $@) && gcc $(CFLAGS) -c $< -o $@
 
+$(TEST_LEAK_BUILD_DIR)/%.o: $(TEST_LEAK_SRC_DIR)/%.c
+	mkdir -p $(dir $@) && gcc $(CFLAGS) -I$(MAIN_SRC_DIR) -o $(subst .o,.x,$@) $< $(MAIN_OBJECTS)
+
 $(TEST_UNIT_BUILD_DIR)/%.o: $(TEST_UNIT_SRC_DIR)/%.c
 	mkdir -p $(dir $@) && gcc $(CFLAGS) -I$(MAIN_SRC_DIR) -o $(subst .o,.x,$@) $< $(MAIN_OBJECTS)
 
 $(TEST_PERF_BUILD_DIR)/%.o: $(TEST_PERF_SRC_DIR)/%.c
-	mkdir -p $(dir $@) && gcc $(CFLAGS) -I$(MAIN_SRC_DIR) -I$(TEST_UNIT_SRC_DIR) -o $(subst .o,.x,$@) $< $(MAIN_OBJECTS)
+	mkdir -p $(dir $@) && gcc $(CFLAGS) -I$(MAIN_SRC_DIR) -o $(subst .o,.x,$@) $< $(MAIN_OBJECTS)
+
+$(TEST_LEAK_RUNNERS):
+	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --verbose $(@D) $(@F)
 
 $(TEST_UNIT_RUNNERS):
 	exec $@
