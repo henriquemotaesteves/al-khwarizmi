@@ -1,0 +1,16 @@
+name: Build
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - run: sudo apt update
+
+      - run: sudo apt install clang-tidy fonts-liberation gcc gnuplot gpg lsb-release make musl-dev software-properties-common valgrind
+
+      - run: make
